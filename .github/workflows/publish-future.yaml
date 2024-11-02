@@ -1,0 +1,33 @@
+on:
+  # pushes to main that change any files in the rmm path
+  workflow_dispatch:
+  # push:
+  #   branches:
+  #     - main
+  #   paths:
+  #     - 'rmm-future/**'
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      deployments: write
+    name: Deploy to Cloudflare Pages
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          submodules: recursive
+      # Run hugo within the rmm directory
+      - name: Build
+        run: |
+          cd rmm-future
+          hugo --gc --minify
+      - name: Publish
+        uses: cloudflare/pages-action@1
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          projectName: future-rmm-landing # e.g. 'my-project'
+          directory: rmm-future/public
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
